@@ -1,0 +1,1459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Huntley House — Puzzles</title>
+  <!-- Preload hero image for LCP -->
+  
+  <style>
+    /* ─── Fonts ─────────────────────────────────────────────── */
+    @font-face { font-family: 'StylebenderRetro'; src: url('assets/fonts/Stylebender-Retro.otf') format('opentype'); }
+    @font-face { font-family: 'Stylebender'; src: url('assets/fonts/Stylebender.otf') format('opentype'); }
+    @font-face { font-family: 'KeplerItalic'; src: url('assets/fonts/Kepler Std Medium Semicondensed Italic.otf') format('opentype'); font-style: italic; }
+    @font-face { font-family: 'NHaasGrotesk'; src: url('assets/fonts/NHaasGroteskDSPro-55Rg.ttf') format('truetype'); }
+
+    /* ─── Tokens ─────────────────────────────────────────────── */
+    :root {
+      --cocoa:      #2F1B1B;
+      --cream:      #FFFCF8;
+      --cream-warm: #EFE6D8;
+      --olive:      #848247;
+      --orange:     #E46C3A;
+      --mauve:      #C89AA6;
+      --blue:       #8FBEC4;
+      --mustard:    #E0B24A;
+      --pink:       #C62A63;
+      --choc:       #4A2F2A;
+      --stone:      #9A9284;
+      --font-title:  'StylebenderRetro', serif;
+      --font-sub:    'Stylebender', serif;
+      --font-italic: 'KeplerItalic', serif;
+      --font-body:   'NHaasGrotesk', sans-serif;
+      --container-max: 1720px;
+      --gutter: 40px;
+    }
+
+    /* ─── Reset ──────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { background: var(--cream); color: var(--cocoa); font-family: var(--font-body); font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    img { display: block; max-width: 100%; }
+    a { color: inherit; text-decoration: none; }
+    button { cursor: pointer; font-family: inherit; }
+
+    /* ─── Nav ────────────────────────────────────────────────── */
+    .nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: grid;
+      grid-template-columns: minmax(0,1fr) auto minmax(0,1fr);
+      align-items: center;
+      padding: 12px var(--gutter);
+      background: var(--cocoa);
+      border-bottom: 1px solid rgba(239,230,216,0.08);
+      transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+    }
+    .nav.hidden { transform: translateY(-100%); }
+
+    .nav__main { display: flex; gap: 32px; align-items: center; }
+    .nav__main a {
+      font-family: var(--font-body);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--cream);
+      opacity: 0.5;
+      transition: opacity 0.2s;
+      letter-spacing: 0.01em;
+    }
+    .nav__main a:hover { opacity: 1; }
+
+    .nav__logo { justify-self: center; }
+    .nav__logo img { width: 145px; height: auto; display: block; }
+
+    .nav__right {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+      justify-content: flex-end;
+    }
+    .nav__icon-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      background: none;
+      border: none;
+      color: var(--cream);
+      opacity: 0.5;
+      transition: opacity 0.2s;
+      position: relative;
+      cursor: pointer;
+    }
+    .nav__icon-btn:hover { opacity: 1; }
+    .nav__icon-btn { position: relative; }
+    .cart-badge {
+      position: absolute;
+      top: 4px; right: 4px;
+      width: 14px; height: 14px;
+      background: var(--cream);
+      color: var(--cocoa);
+      border-radius: 50%;
+      font-size: 8px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+    .cart-badge.visible { display: flex; }
+
+    .nav__hamburger {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      background: none;
+      border: none;
+      color: var(--cream);
+      opacity: 0.7;
+      cursor: pointer;
+    }
+
+    /* Mobile drawer — slides from left */
+    .nav__drawer {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      pointer-events: none;
+    }
+    .nav__drawer.is-open { pointer-events: all; }
+    .nav__drawer-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(47,27,27,0.5);
+      opacity: 0;
+      transition: opacity 0.35s;
+    }
+    .nav__drawer.is-open .nav__drawer-overlay { opacity: 1; }
+    .nav__drawer-panel {
+      position: absolute;
+      top: 0; left: 0; bottom: 0;
+      width: min(320px, 85vw);
+      background: var(--cocoa);
+      border-right: 1px solid rgba(239,230,216,0.08);
+      display: flex;
+      flex-direction: column;
+      padding: 64px 40px 48px;
+      transform: translateX(-100%);
+      transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+    }
+    .nav__drawer.is-open .nav__drawer-panel { transform: translateX(0); }
+    .nav__drawer-links { display: flex; flex-direction: column; gap: 8px; flex: 1; }
+    .nav__drawer-links a {
+      font-family: var(--font-title);
+      font-size: clamp(28px, 7vw, 36px);
+      letter-spacing: -0.015em;
+      text-transform: uppercase;
+      color: var(--cream);
+      opacity: 0.6;
+      line-height: 1.15;
+      transition: opacity 0.2s;
+    }
+    .nav__drawer-links a:hover { opacity: 1; }
+    .nav__drawer-footer {
+      border-top: 1px solid rgba(239,230,216,0.1);
+      padding-top: 24px;
+    }
+    .nav__drawer-footer a {
+      font-family: var(--font-body);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      color: var(--cream);
+      opacity: 0.4;
+      transition: opacity 0.2s;
+    }
+    .nav__drawer-footer a:hover { opacity: 1; }
+
+    /* ─── Hero ───────────────────────────────────────────────── */
+    .hero {
+      position: relative;
+      height: 100vh;
+      min-height: 600px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+    .hero__bg {
+      position: absolute;
+      inset: 0;
+      background: #504c56;
+    }
+    .hero__bg img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center center;
+    }
+    .hero__overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        to bottom,
+        rgba(47,27,27,0.22) 0%,
+        rgba(47,27,27,0.38) 55%,
+        rgba(47,27,27,0.52) 100%
+      );
+    }
+    .hero__content {
+      position: relative;
+      z-index: 2;
+      padding: 0 48px;
+      max-width: 860px;
+      width: 100%;
+    }
+
+    /* ─── Hero entrance animation ──────────────────────────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .hero__eyebrow,
+    .hero__headline,
+    .hero__tagline,
+    .hero__cta {
+      opacity: 0;
+      animation: fadeUp 1.2s cubic-bezier(0.215, 0.61, 0.355, 1) forwards;
+    }
+    .hero__eyebrow  { animation-delay: 0.2s; }
+    .hero__headline { animation-delay: 0.4s; }
+    .hero__tagline  { animation-delay: 0.6s; }
+    .hero__cta      { animation-delay: 0.8s; }
+
+    .hero__eyebrow {
+      font-family: var(--font-body);
+      font-size: 10px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--cream);
+      opacity: 0;
+      margin-bottom: 24px;
+      text-shadow: 0 1px 16px rgba(47,27,27,0.5);
+    }
+    .hero__headline {
+      font-family: var(--font-title);
+      font-size: clamp(52px, 7vw, 100px);
+      line-height: 0.92;
+      letter-spacing: -0.015em;
+      text-transform: uppercase;
+      color: var(--cream);
+      margin-bottom: 28px;
+      text-shadow: 0 2px 32px rgba(47,27,27,0.4);
+    }
+    .hero__tagline {
+      font-family: var(--font-italic);
+      font-style: italic;
+      font-size: clamp(22px, 2.8vw, 34px);
+      color: var(--cream);
+      margin-bottom: 40px;
+      text-shadow: 0 1px 20px rgba(47,27,27,0.4);
+    }
+    .hero__cta {
+      display: inline-block;
+      font-family: var(--font-body);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--cocoa);
+      background: var(--cream-warm);
+      padding: 16px 40px;
+      border: none;
+      width: fit-content;
+      transition: background 0.2s;
+    }
+    .hero__cta:hover { background: #e5dace; }
+
+    /* ─── Value Props ────────────────────────────────────────── */
+    /* ─── Impact scroll ─── */
+    .impact {
+      background: var(--cocoa);
+      position: relative;
+    }
+    .impact::after {
+      content: '';
+      display: block;
+      height: 56px;
+      background: linear-gradient(to bottom, var(--cocoa), var(--cream));
+    }
+    .impact__track {
+      display: flex;
+      overflow-x: scroll;
+      scroll-snap-type: x mandatory;
+      scrollbar-width: none;
+    }
+    .impact__track::-webkit-scrollbar { display: none; }
+    .impact__item {
+      flex: 0 0 100%;
+      scroll-snap-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 72px 60px;
+      min-height: 300px;
+    }
+    .impact__diamond {
+      display: block;
+      width: 6px;
+      height: 6px;
+      background: var(--orange);
+      transform: rotate(45deg);
+      margin: 0 auto 28px;
+    }
+    .impact__title {
+      font-family: var(--font-title);
+      font-size: clamp(32px, 4vw, 52px);
+      letter-spacing: -0.015em;
+      text-transform: uppercase;
+      color: var(--cream);
+      line-height: 1;
+      margin-bottom: 20px;
+    }
+    .impact__body {
+      font-family: var(--font-body);
+      font-size: 14px;
+      color: var(--cream);
+      opacity: 0.6;
+      line-height: 1.65;
+      max-width: 340px;
+    }
+    .impact__dots {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      padding-bottom: 28px;
+    }
+    /* ─── Mobile impact (single panel + creds) ──────────────── */
+    .impact-mobile { display: none; }
+    .impact-mobile__panel {
+      background: var(--cocoa);
+      text-align: center;
+      padding: 52px 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .impact-mobile__title {
+      font-family: var(--font-title);
+      font-size: 28px;
+      letter-spacing: -0.015em;
+      text-transform: uppercase;
+      color: var(--cream);
+      line-height: 1;
+      margin-bottom: 14px;
+    }
+    .impact-mobile__body {
+      font-family: var(--font-body);
+      font-size: 13px;
+      color: var(--cream);
+      opacity: 0.6;
+      line-height: 1.65;
+      max-width: 280px;
+    }
+    .impact-mobile__creds {
+      background: var(--cream-warm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 14px 20px;
+      font-family: var(--font-body);
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--stone);
+    }
+    .impact-mobile__bull {
+      display: inline-block;
+      width: 5px;
+      height: 5px;
+      background: var(--orange);
+      transform: rotate(45deg);
+      flex-shrink: 0;
+    }
+
+    .impact__dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: rgba(239,230,216,0.2);
+      transition: background 0.3s;
+      cursor: pointer;
+    }
+    .impact__dot.active { background: var(--cream-warm); }
+
+    /* ─── Marquee ────────────────────────────────────────────── */
+    .marquee-section { background: var(--cream); }
+    .marquee-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 64px 48px 32px;
+    }
+    .marquee-header__title {
+      font-family: var(--font-italic);
+      font-style: italic;
+      font-size: clamp(20px, 2.5vw, 32px);
+      color: var(--cocoa);
+    }
+    .marquee-header__link {
+      font-family: var(--font-body);
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--cocoa);
+      opacity: 0.5;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: opacity 0.2s;
+    }
+    .marquee-header__link:hover { opacity: 1; }
+    .marquee { overflow: hidden; padding-bottom: 40px; }
+    .marquee__track {
+      display: flex;
+      gap: 12px;
+      width: max-content;
+      will-change: transform;
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+    }
+    .marquee__item { flex-shrink: 0; height: 480px; width: auto; }
+    .marquee__item a { display: block; height: 100%; }
+    .marquee__item img { height: 100%; width: auto; display: block; transition: transform 0.6s ease; }
+    .marquee__item:hover img { transform: scale(1.03); }
+
+    /* ─── Collection ─────────────────────────────────────────── */
+    .collection { background: var(--cream); padding: 0 var(--gutter) 100px; }
+    .section-header { text-align: center; padding: 52px var(--gutter) 48px; max-width: var(--container-max); margin: 0 auto; }
+    .section-header__label { font-family: var(--font-body); font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--stone); margin-bottom: 12px; }
+    .section-header__title { font-family: var(--font-title); font-size: clamp(36px, 4.5vw, 64px); line-height: 0.95; letter-spacing: -0.015em; text-transform: uppercase; color: var(--cocoa); }
+    .collection__scroll-wrap { position: relative; }
+    .collection__grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; max-width: var(--container-max); margin: 0 auto; }
+    .collection__progress { height: 2px; background: rgba(47,27,27,0.12); max-width: var(--container-max); margin: 32px auto 0; display: none; }
+    .collection__progress-bar { height: 100%; background: var(--cocoa); width: 25%; transition: width 0.1s linear; }
+    .card { display: flex; flex-direction: column; cursor: pointer; text-decoration: none; color: inherit; }
+    .card__image-wrap { position: relative; overflow: hidden; background: var(--cream-warm); margin-bottom: 14px; aspect-ratio: 1534 / 1794; }
+    .card__image-wrap img { width: 100%; height: 100%; object-fit: contain; transition: transform 0.6s ease, opacity 0.4s ease; }
+    .card:hover .card__image-wrap img { transform: scale(1.02); }
+    .card__box-img { position: absolute; inset: 0; opacity: 0; transition: opacity 0.4s ease; }
+    .card:hover .card__box-img { opacity: 1; }
+    .card:hover .card__puzzle-img { opacity: 0; }
+    .card__name { font-family: var(--font-title); font-size: 17px; letter-spacing: -0.015em; text-transform: uppercase; color: var(--cocoa); line-height: 1; margin-bottom: 5px; }
+    .card__meta { font-family: var(--font-body); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--stone); }
+    .card__footer { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+    .card__pricing { display: flex; align-items: baseline; gap: 8px; }
+    .card__price-was { font-family: var(--font-body); font-size: 12px; color: var(--stone); text-decoration: line-through; }
+    .card__price { font-family: var(--font-body); font-size: 14px; color: var(--cocoa); }
+    .card__btn { font-family: var(--font-body); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; background: none; border: 1px solid var(--cocoa); color: var(--cocoa); padding: 7px 14px; transition: background 0.2s, color 0.2s; }
+    .card__btn:hover { background: var(--cocoa); color: var(--cream); }
+    .card__quick-add { width: 100%; padding: 13px; background: var(--orange); color: var(--cream); border: none; font-family: var(--font-body); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; margin-top: 10px; opacity: 0; transform: translateY(4px); transition: opacity 0.2s, transform 0.2s; }
+    .card:hover .card__quick-add { opacity: 1; transform: translateY(0); }
+    .card__quick-add:hover { background: #c85c2a; }
+
+    /* ─── Ritual ─────────────────────────────────────────────── */
+    .ritual {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: 560px;
+    }
+    .ritual__image { overflow: hidden; }
+    .ritual__image img { width: 100%; height: 100%; object-fit: cover; }
+    .ritual__text {
+      background: var(--cream-warm);
+      padding: 80px 72px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .ritual__label { font-family: var(--font-body); font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--stone); margin-bottom: 24px; }
+    .ritual__title { font-family: var(--font-italic); font-size: clamp(28px, 3vw, 44px); font-style: italic; color: var(--cocoa); line-height: 1.2; margin-bottom: 24px; }
+    .ritual__divider { margin-bottom: 24px; }
+    .ritual__divider img { height: 14px; width: auto; opacity: 0.4; }
+    .ritual__body { font-family: var(--font-body); font-size: 15px; color: var(--cocoa); opacity: 0.75; line-height: 1.75; max-width: 420px; margin-bottom: 36px; }
+    .ritual__cta { display: inline-block; font-family: var(--font-body); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--cream); background: var(--olive); padding: 14px 32px; width: fit-content; transition: background 0.2s; }
+    .ritual__cta:hover { background: #6e6c3a; }
+
+    /* ─── Brand story ────────────────────────────────────────── */
+    .brand-story {
+      background: var(--cream);
+      text-align: center;
+      padding: 80px 48px;
+      max-width: 760px;
+      margin: 0 auto;
+    }
+    .brand-story__body { font-family: var(--font-italic); font-style: italic; font-size: clamp(17px, 2vw, 22px); color: var(--cocoa); line-height: 1.7; margin-bottom: 28px; opacity: 0.85; }
+    .brand-story__divider img { height: 16px; width: auto; opacity: 0.35; margin: 0 auto; }
+
+    /* ─── The Edit ───────────────────────────────────────────── */
+    .edit { background: var(--cream); padding: 0 var(--gutter) 100px; }
+    .edit__header { display: flex; justify-content: space-between; align-items: baseline; padding: 72px 0 40px; max-width: var(--container-max); margin: 0 auto; }
+    .edit__title { font-family: var(--font-title); font-size: clamp(28px, 3.5vw, 48px); letter-spacing: -0.015em; text-transform: uppercase; color: var(--cocoa); }
+    .edit__link { font-family: var(--font-body); font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--cocoa); opacity: 0.5; display: flex; align-items: center; gap: 6px; transition: opacity 0.2s; }
+    .edit__link:hover { opacity: 1; }
+    .edit__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; max-width: var(--container-max); margin: 0 auto; }
+    .edit-card { cursor: pointer; }
+    .edit-card__image { aspect-ratio: 4/3; overflow: hidden; margin-bottom: 20px; background: var(--cream-warm); }
+    .edit-card__image img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s ease; }
+    .edit-card:hover .edit-card__image img { transform: scale(1.04); }
+    .edit-card__label { font-family: var(--font-body); font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--stone); margin-bottom: 10px; }
+    .edit-card__title { font-family: var(--font-italic); font-style: italic; font-size: 20px; color: var(--cocoa); line-height: 1.3; margin-bottom: 12px; }
+    .edit-card__body { font-family: var(--font-body); font-size: 14px; color: var(--cocoa); opacity: 0.65; line-height: 1.65; }
+
+    /* ─── FAQ ────────────────────────────────────────────────── */
+    .faq {
+      background: linear-gradient(to bottom, var(--cream) 0%, var(--blue) 14%, var(--cream-warm) 100%);
+      padding: 80px 48px 100px;
+    }
+    .faq__label { font-family: var(--font-body); font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--cocoa); opacity: 0.6; text-align: center; margin-bottom: 12px; }
+    .faq__title { font-family: var(--font-italic); font-style: italic; font-size: clamp(28px, 3vw, 44px); color: var(--cocoa); text-align: center; margin-bottom: 56px; }
+    .faq__list { max-width: 680px; margin: 0 auto 48px; }
+    .faq__item { border-top: 1px solid rgba(47,27,27,0.15); }
+    .faq__item:last-child { border-bottom: 1px solid rgba(47,27,27,0.15); }
+    .faq__question {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 0;
+      background: none;
+      border: none;
+      font-family: var(--font-body);
+      font-size: 15px;
+      color: var(--cocoa);
+      text-align: left;
+      cursor: pointer;
+      gap: 16px;
+    }
+    .faq__icon { flex-shrink: 0; font-size: 18px; line-height: 1; transition: transform 0.25s; color: var(--cocoa); opacity: 0.5; }
+    .faq__item.is-open .faq__icon { transform: rotate(45deg); opacity: 1; }
+    .faq__answer { font-family: var(--font-body); font-size: 14px; color: var(--cocoa); opacity: 0.7; line-height: 1.7; max-height: 0; overflow: hidden; transition: max-height 0.35s ease, padding 0.25s; }
+    .faq__item.is-open .faq__answer { max-height: 200px; padding-bottom: 20px; }
+    .faq__cta {
+      display: block;
+      font-family: var(--font-body);
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--cocoa);
+      border: 1px solid rgba(47,27,27,0.4);
+      padding: 14px 32px;
+      width: fit-content;
+      margin: 0 auto;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+    }
+    .faq__cta:hover { background: var(--cocoa); color: var(--cream); border-color: var(--cocoa); }
+
+    /* ─── Newsletter ─────────────────────────────────────────── */
+    .newsletter { background: var(--cream-warm); padding: 80px 48px; text-align: center; }
+    .newsletter__mark { height: 48px; width: auto; margin: 0 auto 28px; opacity: 0.5; }
+    .newsletter__title { font-family: var(--font-title); font-size: clamp(24px, 3.5vw, 44px); text-transform: uppercase; letter-spacing: -0.015em; color: var(--cocoa); margin-bottom: 14px; line-height: 1; }
+    .newsletter__sub { font-family: var(--font-body); font-size: 14px; color: var(--cocoa); opacity: 0.65; margin-bottom: 36px; }
+    .newsletter__form { display: flex; justify-content: center; max-width: 440px; margin: 0 auto; }
+    .newsletter__input { flex: 1; padding: 14px 18px; font-family: var(--font-body); font-size: 14px; border: 1px solid rgba(47,27,27,0.2); border-right: none; background: var(--cream); color: var(--cocoa); outline: none; }
+    .newsletter__input::placeholder { color: var(--stone); }
+    .newsletter__submit { padding: 14px 24px; font-family: var(--font-body); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; background: var(--cocoa); color: var(--cream); border: 1px solid var(--cocoa); transition: background 0.2s; white-space: nowrap; }
+    .newsletter__submit:hover { background: var(--choc); }
+
+    /* ─── Cart Drawer ────────────────────────────────────────── */
+    .cart-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(47,27,27,0.4);
+      z-index: 200;
+    }
+    .cart-overlay.is-open { display: block; }
+    .cart-drawer {
+      position: fixed;
+      top: 0; right: 0; bottom: 0;
+      width: 100%;
+      max-width: 420px;
+      background: var(--cream);
+      z-index: 201;
+      transform: translateX(100%);
+      transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      flex-direction: column;
+    }
+    .cart-drawer.is-open { transform: translateX(0); }
+    .cart-drawer__head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 24px 28px;
+      border-bottom: 1px solid rgba(47,27,27,0.1);
+    }
+    .cart-drawer__title {
+      font-family: var(--font-title);
+      font-size: 20px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--cocoa);
+    }
+    .cart-drawer__close {
+      background: none;
+      border: none;
+      font-size: 22px;
+      color: var(--cocoa);
+      opacity: 0.5;
+      line-height: 1;
+      transition: opacity 0.2s;
+    }
+    .cart-drawer__close:hover { opacity: 1; }
+    .cart-drawer__body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px 28px;
+    }
+    .cart-drawer__empty {
+      text-align: center;
+      padding: 64px 0;
+      font-family: var(--font-italic);
+      font-style: italic;
+      font-size: 18px;
+      color: var(--stone);
+    }
+    .cart-item {
+      display: flex;
+      gap: 16px;
+      padding: 16px 0;
+      border-bottom: 1px solid rgba(47,27,27,0.08);
+    }
+    .cart-item__img {
+      width: 72px;
+      height: 84px;
+      object-fit: contain;
+      background: var(--cream-warm);
+      flex-shrink: 0;
+    }
+    .cart-item__info { flex: 1; }
+    .cart-item__name {
+      font-family: var(--font-title);
+      font-size: 13px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--cocoa);
+      margin-bottom: 4px;
+    }
+    .cart-item__meta {
+      font-family: var(--font-body);
+      font-size: 11px;
+      color: var(--stone);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .cart-item__price {
+      font-family: var(--font-body);
+      font-size: 14px;
+      color: var(--cocoa);
+    }
+    .cart-item__remove {
+      background: none;
+      border: none;
+      font-size: 18px;
+      color: var(--stone);
+      align-self: flex-start;
+      padding: 0;
+      transition: color 0.2s;
+    }
+    .cart-item__remove:hover { color: var(--cocoa); }
+    .cart-drawer__foot {
+      padding: 20px 28px 28px;
+      border-top: 1px solid rgba(47,27,27,0.1);
+    }
+    .cart-drawer__total {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-body);
+      font-size: 14px;
+      color: var(--cocoa);
+      margin-bottom: 16px;
+    }
+    .cart-drawer__total-label { text-transform: uppercase; letter-spacing: 0.12em; font-size: 11px; }
+    .cart-drawer__checkout {
+      display: block;
+      width: 100%;
+      padding: 18px;
+      background: var(--cocoa);
+      color: var(--cream);
+      border: none;
+      font-family: var(--font-body);
+      font-size: 11px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      transition: background 0.2s;
+      margin-bottom: 10px;
+    }
+    .cart-drawer__checkout:hover { background: var(--choc); }
+    .cart-drawer__continue {
+      display: block;
+      text-align: center;
+      font-family: var(--font-body);
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--stone);
+      transition: color 0.2s;
+    }
+    .cart-drawer__continue:hover { color: var(--cocoa); }
+    .cart-badge {
+      position: absolute;
+      top: -4px;
+      right: -6px;
+      background: var(--orange);
+      color: var(--cream);
+      font-family: var(--font-body);
+      font-size: 9px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+    .cart-badge.visible { display: flex; }
+    .nav__icon-btn { position: relative; }
+
+    /* ─── Footer ─────────────────────────────────────────────── */
+    .footer { background: var(--blue); padding: 0 48px 40px; }
+    .footer__divider { text-align: center; padding: 48px 0 56px; }
+    .footer__divider img { height: 20px; width: auto; opacity: 0.5; margin: 0 auto; }
+    .footer__top { display: grid; grid-template-columns: 1.2fr 1fr 1fr 1fr; gap: 40px; padding-bottom: 48px; border-bottom: 1px solid rgba(47,27,27,0.12); }
+    .footer__col-label { font-family: var(--font-body); font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--cocoa); opacity: 0.5; margin-bottom: 18px; }
+    .footer__contact-info { font-family: var(--font-body); font-size: 13px; color: var(--cocoa); opacity: 0.7; line-height: 1.7; margin-bottom: 16px; }
+    .footer__links { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .footer__links a { font-family: var(--font-body); font-size: 14px; color: var(--cocoa); opacity: 0.7; transition: opacity 0.2s; }
+    .footer__links a:hover { opacity: 1; }
+    .footer__bottom { display: flex; justify-content: space-between; align-items: center; padding-top: 28px; flex-wrap: wrap; gap: 16px; }
+    .footer__copy { font-family: var(--font-body); font-size: 12px; color: var(--cocoa); opacity: 0.4; }
+    .footer__social { display: flex; gap: 20px; }
+    .footer__social a { font-family: var(--font-body); font-size: 11px; letter-spacing: 0.13em; text-transform: uppercase; color: var(--cocoa); opacity: 0.5; transition: opacity 0.2s; }
+    .footer__social a:hover { opacity: 1; }
+
+    /* ─── Responsive ─────────────────────────────────────────── */
+    @media (max-width: 1100px) {
+      .collection__grid { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    @media (max-width: 640px) {
+      /* Nav — hamburger shows, desktop links hide */
+      :root { --gutter: 20px; }
+      .nav { padding: 8px var(--gutter); }
+      .nav-desktop { display: none; }
+      .nav__hamburger { display: flex; }
+      .nav__logo img { width: 90px; }
+
+      /* Hero */
+      .hero { min-height: 100svh; }
+      .hero__content { padding: 0 24px; }
+      .hero__headline { font-size: clamp(40px, 11vw, 64px); }
+
+      /* Impact — full strip hidden on mobile, compact version shown */
+      .impact { display: none; }
+      .impact-mobile { display: block; }
+
+      /* Marquee */
+      .marquee-section { background: linear-gradient(to bottom, var(--cream-warm) 0px, var(--cream) 56px); }
+      .marquee-header { padding: 48px 20px 24px; }
+      .marquee__item { height: 300px; }
+
+      /* Collection */
+      .section-header { padding: 40px var(--gutter) 28px; }
+      .collection { padding: 0 var(--gutter) 72px; }
+      .collection__grid { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+      .card__btn { display: none; }
+      .card__quick-add { opacity: 1; transform: none; }
+
+      /* Ritual */
+      .ritual { grid-template-columns: 1fr; }
+      .ritual__image { min-height: 320px; }
+      .ritual__text { padding: 56px 28px; }
+      .ritual__body { max-width: 100%; }
+
+      /* Brand story */
+      .brand-story { padding: 60px 28px; }
+
+      /* Edit */
+      .edit { padding: 0 20px 72px; }
+      .edit__header { padding: 56px 0 32px; }
+      .edit__grid { grid-template-columns: 1fr; gap: 40px; }
+
+      /* FAQ */
+      .faq { padding: 64px 24px 80px; }
+
+      /* Newsletter */
+      .newsletter { padding: 64px 24px; }
+      .newsletter__form { flex-direction: column; }
+      .newsletter__input { border-right: 1px solid rgba(47,27,27,0.2); border-bottom: none; }
+      .newsletter__submit { padding: 14px; }
+
+      /* Footer */
+      .footer { padding: 0 24px 32px; }
+      .footer__top { grid-template-columns: 1fr 1fr; gap: 32px; }
+      .footer__bottom { flex-direction: column; align-items: flex-start; }
+    }
+
+    @media (min-width: 641px) {
+      .nav__hamburger { display: none; }
+    }
+
+    @media (max-width: 480px) {
+      .hero__tagline { font-size: 18px; }
+      .collection__grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+      .card__name { font-size: 13px; }
+      .footer__top { grid-template-columns: 1fr; }
+      .edit__grid { gap: 32px; }
+      .marquee__item { height: 220px; }
+    }
+
+    /* ─── Scroll-triggered reveals ───────────────────────────── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(18px);
+    }
+    .reveal.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+      transition: opacity 1.2s cubic-bezier(0.25, 1, 0.5, 1),
+                  transform 1.2s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ─── Mobile Drawer ──────────────────────────────────────── -->
+  <div class="nav__drawer" id="navDrawer">
+    <div class="nav__drawer-overlay" onclick="closeNav()"></div>
+    <div class="nav__drawer-panel">
+      <div class="nav__drawer-links">
+        <a href="#collection" onclick="closeNav()">Shop</a>
+        <a href="#ritual" onclick="closeNav()">About</a>
+        <a href="the-edit.html" onclick="closeNav()">The Edit</a>
+      </div>
+      <div class="nav__drawer-footer">
+        <a href="#">Account</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Nav ───────────────────────────────────────────────── -->
+  <header class="nav" id="mainNav">
+    <nav class="nav__main">
+      <button class="nav__hamburger" id="hamburger" onclick="toggleNav()" aria-label="Menu">
+        <svg stroke-width="1.2" width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor">
+          <path d="M1 5h20M1 11h20M1 17h20" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <a href="#collection" class="nav-desktop">Shop</a>
+      <a href="#ritual" class="nav-desktop">About</a>
+      <a href="the-edit.html" class="nav-desktop">The Edit</a>
+    </nav>
+    <h1 class="nav__logo">
+      <a href="index.html">
+        <img src="assets/logos/HH_logo_type_cream.svg" alt="Huntley House">
+      </a>
+    </h1>
+    <div class="nav__right">
+      <button class="nav__icon-btn" aria-label="Search">
+        <svg stroke-width="1.2" width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor">
+          <circle cx="11" cy="10" r="7"/><path d="m16 15 3 3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <button class="nav__icon-btn" aria-label="Account">
+        <svg stroke-width="1.2" width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor">
+          <circle cx="11" cy="7" r="4"/><path d="M3.5 19c1.421-2.974 4.247-5 7.5-5s6.079 2.026 7.5 5" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <button class="nav__icon-btn" aria-label="Cart" onclick="openCart()">
+        <svg stroke-width="1.2" width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor">
+          <path d="M11 7H3.577A2 2 0 0 0 1.64 9.497l2.051 8A2 2 0 0 0 5.63 19H16.37a2 2 0 0 0 1.937-1.503l2.052-8A2 2 0 0 0 18.422 7H11Zm0 0V1" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="cart-badge" id="cartBadge"></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ─── Hero ──────────────────────────────────────────────── -->
+  <section class="hero">
+    <div class="hero__bg">
+      <img src="https://huntleyhouse.com/cdn/shop/files/tarot_Box_Booklet_closeup.png?v=1770854413" alt="" fetchpriority="high" decoding="sync">
+    </div>
+    <div class="hero__overlay"></div>
+    <div class="hero__content">
+      <h1 class="hero__headline">Less Scrolling.<br>More Puzzling.</h1>
+      <p class="hero__tagline">Brain cardio. No gym required.</p>
+      <a href="#collection" class="hero__cta">Shop the Collection</a>
+    </div>
+  </section>
+
+  <!-- ─── Impact ────────────────────────────────────────────── -->
+  <div class="impact" id="impact">
+    <div class="impact__track" id="impactTrack">
+      <div class="impact__item">
+        <span class="impact__diamond"></span>
+        <p class="impact__title">Born in the City of Angels</p>
+        <p class="impact__body">West Hollywood roots with manufacturing and craftsmanship at our core.</p>
+      </div>
+      <div class="impact__item">
+        <span class="impact__diamond"></span>
+        <p class="impact__title">The Softest Touch</p>
+        <p class="impact__body">Our pieces are crafted to feel as good in your hands as they look on the table.</p>
+      </div>
+      <div class="impact__item">
+        <span class="impact__diamond"></span>
+        <p class="impact__title">Elevated Artwork</p>
+        <p class="impact__body">We'll help you find the right puzzle for your skill level — and every windowsill.</p>
+      </div>
+    </div>
+    <div class="impact__dots" id="impactDots">
+      <span class="impact__dot active" onclick="impactGoTo(0)"></span>
+      <span class="impact__dot" onclick="impactGoTo(1)"></span>
+      <span class="impact__dot" onclick="impactGoTo(2)"></span>
+    </div>
+  </div>
+
+  <!-- ─── Impact mobile (single panel + credentials) ─────────── -->
+  <div class="impact-mobile">
+    <div class="impact-mobile__panel">
+      <span class="impact__diamond"></span>
+      <p class="impact-mobile__title">The Softest Touch</p>
+      <p class="impact-mobile__body">Our pieces are crafted to feel as good in your hands as they look on the table.</p>
+    </div>
+    <div class="impact-mobile__creds">
+      <span>Made in USA</span>
+      <span class="impact-mobile__bull"></span>
+      <span>500 &amp; 1000 Pieces</span>
+      <span class="impact-mobile__bull"></span>
+      <span>$39.95</span>
+    </div>
+  </div>
+
+  <!-- ─── Marquee ───────────────────────────────────────────── -->
+  <div class="marquee-section">
+    <div class="marquee-header">
+      <p class="marquee-header__title">One piece, one pause, one "aha" at a time.</p>
+      <a href="#collection" class="marquee-header__link">View All →</a>
+    </div>
+    <div class="marquee">
+      <div class="marquee__track">
+        <div class="marquee__item"><a href="product.html?puzzle=cat-christmas"><img src="https://huntleyhouse.com/cdn/shop/files/pamelalove-the-infinite-door-a-tarot-deck-and-guide-book-Objects-0e61a31ae76f8a7a5e265dcc280186d2_webp_the-infinite-door-a-tarot-deck-and-guide-book_b8c32604714495ce_1600x_e027d2ef-015f-4cc2-9834-ff37a1f70f60.png?v=1770856938" alt="Cat Christmas"></a></div>
+        <div class="marquee__item"><a href="product.html?puzzle=fabled-forest"><img src="https://huntleyhouse.com/cdn/shop/files/pamelalove-the-infinite-door-a-tarot-deck-and-guide-book-Objects-0d4567862e48935970df86b8f97118a9_webp_the-infinite-door-a-tarot-deck-and-guide-book_e749478bcc3657be_1400x_2d5e9c95-668e-4274-925b-a6ace4bba31b.png?v=1770856937" alt="Fabled Forest"></a></div>
+        <div class="marquee__item"><a href="product.html?puzzle=frosted-feelings"><img src="https://huntleyhouse.com/cdn/shop/files/pamelalove-the-infinite-door-a-tarot-deck-and-guide-book-Objects-18ff8e936c3af0a2dbba6207a43707ad_webp_the-infinite-door-a-tarot-deck-and-guide-book_edb493b21a1e3987_1600x_7aed2648-2d20-47a5-99cb-e6acbd5d33c0.png?v=1770854652" alt="Frosted Feelings"></a></div>
+        <div class="marquee__item"><a href="product.html?puzzle=pastel-petals"><img src="https://huntleyhouse.com/cdn/shop/files/pamelalove-the-infinite-door-a-tarot-deck-and-guide-book-Objects-0e61a31ae76f8a7a5e265dcc280186d2_webp_the-infinite-door-a-tarot-deck-and-guide-book_b8c32604714495ce_1600x_e027d2ef-015f-4cc2-9834-ff37a1f70f60.png?v=1770856938" alt="Pastel Petals"></a></div>
+        <div class="marquee__item"><a href="product.html?puzzle=purrfect-pages"><img src="https://huntleyhouse.com/cdn/shop/files/pamelalove-the-infinite-door-a-tarot-deck-and-guide-book-Objects-0d4567862e48935970df86b8f97118a9_webp_the-infinite-door-a-tarot-deck-and-guide-book_e749478bcc3657be_1400x_2d5e9c95-668e-4274-925b-a6ace4bba31b.png?v=1770856937" alt="Purrfect Pages"></a></div>
+        <div class="marquee__item"><a href="product.html?puzzle=rainy-ramen"><img src="https://huntleyhouse.com/cdn/shop/files/pamelalove-the-infinite-door-a-tarot-deck-and-guide-book-Objects-18ff8e936c3af0a2dbba6207a43707ad_webp_the-infinite-door-a-tarot-deck-and-guide-book_edb493b21a1e3987_1600x_7aed2648-2d20-47a5-99cb-e6acbd5d33c0.png?v=1770854652" alt="Rainy Ramen"></a></div>
+        <div class="marquee__item"><a href="product.html?puzzle=route-retro"><img src="https://huntleyhouse.com/cdn/shop/files/pamelalove-the-infinite-door-a-tarot-deck-and-guide-book-Objects-0e61a31ae76f8a7a5e265dcc280186d2_webp_the-infinite-door-a-tarot-deck-and-guide-book_b8c32604714495ce_1600x_e027d2ef-015f-4cc2-9834-ff37a1f70f60.png?v=1770856938" alt="Route Retro"></a></div>
+        <div class="marquee__item"><a href="product.html?puzzle=vino-voyage"><img src="https://huntleyhouse.com/cdn/shop/files/pamelalove-the-infinite-door-a-tarot-deck-and-guide-book-Objects-0d4567862e48935970df86b8f97118a9_webp_the-infinite-door-a-tarot-deck-and-guide-book_e749478bcc3657be_1400x_2d5e9c95-668e-4274-925b-a6ace4bba31b.png?v=1770856937" alt="Vino Voyage"></a></div>
+        <div class="marquee__item"><a href="product.html?puzzle=cat-christmas" tabindex="-1" aria-hidden="true"><img src="https://huntleyhouse.com/cdn/shop/files/pamelalove-the-infinite-door-a-tarot-deck-and-guide-book-Objects-0d4567862e48935970df86b8f97118a9_webp_the-infinite-door-a-tarot-deck-and-guide-book_e749478bcc3657be_1400x_2d5e9c95-668e-4274-925b-a6ace4bba31b.png?v=1770856937" alt=""></a></div>
+        <div class="marquee__item"><a href="product.html?puzzle=fabled-forest" tabindex="-1" aria-hidden="true"><img src="https://huntleyhouse.com/cdn/shop/files/pamelalove-the-infinite-door-a-tarot-deck-and-guide-book-Objects-0d4567862e48935970df86b8f97118a9_webp_the-infinite-door-a-tarot-deck-and-guide-book_e749478bcc3657be_1400x_2d5e9c95-668e-4274-925b-a6ace4bba31b.png?v=1770856937" alt=""></a></div>
+        <div class="marquee__item"><a href="product.html?puzzle=frosted-feelings" tabindex="-1" aria-hidden="true"><img src="https://huntleyhouse.com/cdn/shop/files/pamelalove-the-infinite-door-a-tarot-deck-and-guide-book-Objects-0d4567862e48935970df86b8f97118a9_webp_the-infinite-door-a-tarot-deck-and-guide-book_e749478bcc3657be_1400x_2d5e9c95-668e-4274-925b-a6ace4bba31b.png?v=1770856937" alt=""></a></div>
+        <div class="marquee__item"><a href="product.html?puzzle=pastel-petals" tabindex="-1" aria-hidden="true"><img src="https://huntleyhouse.com/cdn/shop/files/pamelalove-the-infinite-door-a-tarot-deck-and-guide-book-Objects-0d4567862e48935970df86b8f97118a9_webp_the-infinite-door-a-tarot-deck-and-guide-book_e749478bcc3657be_1400x_2d5e9c95-668e-4274-925b-a6ace4bba31b.png?v=1770856937" alt=""></a></div>
+        <div class="marquee__item"><a href="product.html?puzzle=purrfect-pages" tabindex="-1" aria-hidden="true"><img src="https://huntleyhouse.com/cdn/shop/files/pamelalove-the-infinite-door-a-tarot-deck-and-guide-book-Objects-0d4567862e48935970df86b8f97118a9_webp_the-infinite-door-a-tarot-deck-and-guide-book_e749478bcc3657be_1400x_2d5e9c95-668e-4274-925b-a6ace4bba31b.png?v=1770856937" alt=""></a></div>
+        <div class="marquee__item"><a href="product.html?puzzle=rainy-ramen" tabindex="-1" aria-hidden="true"><img src="https://huntleyhouse.com/cdn/shop/files/pamelalove-the-infinite-door-a-tarot-deck-and-guide-book-Objects-0d4567862e48935970df86b8f97118a9_webp_the-infinite-door-a-tarot-deck-and-guide-book_e749478bcc3657be_1400x_2d5e9c95-668e-4274-925b-a6ace4bba31b.png?v=1770856937" alt=""></a></div>
+        <div class="marquee__item"><a href="product.html?puzzle=route-retro" tabindex="-1" aria-hidden="true"><img src="https://huntleyhouse.com/cdn/shop/files/pamelalove-the-infinite-door-a-tarot-deck-and-guide-book-Objects-0d4567862e48935970df86b8f97118a9_webp_the-infinite-door-a-tarot-deck-and-guide-book_e749478bcc3657be_1400x_2d5e9c95-668e-4274-925b-a6ace4bba31b.png?v=1770856937" alt=""></a></div>
+        <div class="marquee__item"><a href="product.html?puzzle=vino-voyage" tabindex="-1" aria-hidden="true"><img src="https://huntleyhouse.com/cdn/shop/files/pamelalove-the-infinite-door-a-tarot-deck-and-guide-book-Objects-0d4567862e48935970df86b8f97118a9_webp_the-infinite-door-a-tarot-deck-and-guide-book_e749478bcc3657be_1400x_2d5e9c95-668e-4274-925b-a6ace4bba31b.png?v=1770856937" alt=""></a></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Collection ────────────────────────────────────────── -->
+  <section class="collection" id="collection">
+    <div class="section-header">
+      <p class="section-header__label">The Collection</p>
+      <h2 class="section-header__title">The Puzzles</h2>
+    </div>
+    <div class="collection__scroll-wrap">
+    <div class="collection__grid" id="collectionGrid">
+      <a class="card" href="product.html?puzzle=route-retro">
+        <div class="card__image-wrap">
+          <img class="card__puzzle-img" src="https://huntleyhouse.com/cdn/shop/files/pamelalove-the-infinite-door-a-tarot-deck-and-guide-book-Objects-0e61a31ae76f8a7a5e265dcc280186d2_webp_the-infinite-door-a-tarot-deck-and-guide-book_b8c32604714495ce_1600x_e027d2ef-015f-4cc2-9834-ff37a1f70f60.png?v=1770856938" alt="Route Retro">
+          <img class="card__box-img" src="https://huntleyhouse.com/cdn/shop/files/pamelalove-the-infinite-door-a-tarot-deck-and-guide-book-Objects-0d4567862e48935970df86b8f97118a9_webp_the-infinite-door-a-tarot-deck-and-guide-book_e749478bcc3657be_1400x_2d5e9c95-668e-4274-925b-a6ace4bba31b.png?v=1770856937" alt="Route Retro artwork">
+        </div>
+        <div class="card__info">
+          <h3 class="card__name">Route Retro</h3>
+          <p class="card__meta">1000 Piece Puzzle</p>
+          <div class="card__footer"><div class="card__pricing"><span class="card__price-was">$44.95</span><span class="card__price">$34.95</span></div></div>
+          <button class="card__quick-add" onclick="event.preventDefault();event.stopPropagation();addToCart('Route Retro',1000,'https://huntleyhouse.com/cdn/shop/files/pamelalove-the-infinite-door-a-tarot-deck-and-guide-book-Objects-0e61a31ae76f8a7a5e265dcc280186d2_webp_the-infinite-door-a-tarot-deck-and-guide-book_b8c32604714495ce_1600x_e027d2ef-015f-4cc2-9834-ff37a1f70f60.png?v=1770856938">Add to Cart</button>
+        </div>
+      </a>
+      <a class="card" href="product.html?puzzle=vino-voyage">
+        <div class="card__image-wrap">
+          <img class="card__puzzle-img" src="https://huntleyhouse.com/cdn/shop/files/pamelalove-the-infinite-door-a-tarot-deck-and-guide-book-Objects-0e61a31ae76f8a7a5e265dcc280186d2_webp_the-infinite-door-a-tarot-deck-and-guide-book_b8c32604714495ce_1600x_e027d2ef-015f-4cc2-9834-ff37a1f70f60.png?v=1770856938" alt="Vino Voyage">
+          <img class="card__box-img" src="https://huntleyhouse.com/cdn/shop/files/pamelalove-the-infinite-door-a-tarot-deck-and-guide-book-Objects-0d4567862e48935970df86b8f97118a9_webp_the-infinite-door-a-tarot-deck-and-guide-book_e749478bcc3657be_1400x_2d5e9c95-668e-4274-925b-a6ace4bba31b.png?v=1770856937" alt="Vino Voyage artwork">
+        </div>
+        <div class="card__info">
+          <h3 class="card__name">Vino Voyage</h3>
+          <p class="card__meta">1000 Piece Puzzle</p>
+          <div class="card__footer"><div class="card__pricing"><span class="card__price-was">$44.95</span><span class="card__price">$34.95</span></div></div>
+          <button class="card__quick-add" onclick="event.preventDefault();event.stopPropagation();addToCart('Vino Voyage',1000,'https://huntleyhouse.com/cdn/shop/files/pamelalove-the-infinite-door-a-tarot-deck-and-guide-book-Objects-0e61a31ae76f8a7a5e265dcc280186d2_webp_the-infinite-door-a-tarot-deck-and-guide-book_b8c32604714495ce_1600x_e027d2ef-015f-4cc2-9834-ff37a1f70f60.png?v=1770856938">Add to Cart</button>
+        </div>
+      </a>
+      <a class="card" href="product.html?puzzle=rainy-ramen">
+        <div class="card__image-wrap">
+          <img class="card__puzzle-img" src="https://huntleyhouse.com/cdn/shop/files/pamelalove-the-infinite-door-a-tarot-deck-and-guide-book-Objects-0e61a31ae76f8a7a5e265dcc280186d2_webp_the-infinite-door-a-tarot-deck-and-guide-book_b8c32604714495ce_1600x_e027d2ef-015f-4cc2-9834-ff37a1f70f60.png?v=1770856938" alt="Rainy Ramen">
+          <img class="card__box-img" src="https://huntleyhouse.com/cdn/shop/files/pamelalove-the-infinite-door-a-tarot-deck-and-guide-book-Objects-0d4567862e48935970df86b8f97118a9_webp_the-infinite-door-a-tarot-deck-and-guide-book_e749478bcc3657be_1400x_2d5e9c95-668e-4274-925b-a6ace4bba31b.png?v=1770856937" alt="Rainy Ramen artwork">
+        </div>
+        <div class="card__info">
+          <h3 class="card__name">Rainy Ramen</h3>
+          <p class="card__meta">1000 Piece Puzzle</p>
+          <div class="card__footer"><div class="card__pricing"><span class="card__price-was">$44.95</span><span class="card__price">$34.95</span></div></div>
+          <button class="card__quick-add" onclick="event.preventDefault();event.stopPropagation();addToCart('Rainy Ramen',1000,'https://huntleyhouse.com/cdn/shop/files/pamelalove-the-infinite-door-a-tarot-deck-and-guide-book-Objects-0e61a31ae76f8a7a5e265dcc280186d2_webp_the-infinite-door-a-tarot-deck-and-guide-book_b8c32604714495ce_1600x_e027d2ef-015f-4cc2-9834-ff37a1f70f60.png?v=1770856938">Add to Cart</button>
+        </div>
+      </a>
+      <a class="card" href="product.html?puzzle=purrfect-pages">
+        <div class="card__image-wrap">
+          <img class="card__puzzle-img" src="https://huntleyhouse.com/cdn/shop/files/pamelalove-the-infinite-door-a-tarot-deck-and-guide-book-Objects-0e61a31ae76f8a7a5e265dcc280186d2_webp_the-infinite-door-a-tarot-deck-and-guide-book_b8c32604714495ce_1600x_e027d2ef-015f-4cc2-9834-ff37a1f70f60.png?v=1770856938" alt="Purrfect Pages">
+          <img class="card__box-img" src="https://huntleyhouse.com/cdn/shop/files/pamelalove-the-infinite-door-a-tarot-deck-and-guide-book-Objects-0d4567862e48935970df86b8f97118a9_webp_the-infinite-door-a-tarot-deck-and-guide-book_e749478bcc3657be_1400x_2d5e9c95-668e-4274-925b-a6ace4bba31b.png?v=1770856937" alt="Purrfect Pages artwork">
+        </div>
+        <div class="card__info">
+          <h3 class="card__name">Purrfect Pages</h3>
+          <p class="card__meta">500 Piece Puzzle</p>
+          <div class="card__footer"><div class="card__pricing"><span class="card__price-was">$44.95</span><span class="card__price">$34.95</span></div></div>
+          <button class="card__quick-add" onclick="event.preventDefault();event.stopPropagation();addToCart('Purrfect Pages',500,'https://huntleyhouse.com/cdn/shop/files/pamelalove-the-infinite-door-a-tarot-deck-and-guide-book-Objects-0e61a31ae76f8a7a5e265dcc280186d2_webp_the-infinite-door-a-tarot-deck-and-guide-book_b8c32604714495ce_1600x_e027d2ef-015f-4cc2-9834-ff37a1f70f60.png?v=1770856938">Add to Cart</button>
+        </div>
+      </a>
+      <a class="card" href="product.html?puzzle=frosted-feelings">
+        <div class="card__image-wrap">
+          <img class="card__puzzle-img" src="https://huntleyhouse.com/cdn/shop/files/pamelalove-the-infinite-door-a-tarot-deck-and-guide-book-Objects-0e61a31ae76f8a7a5e265dcc280186d2_webp_the-infinite-door-a-tarot-deck-and-guide-book_b8c32604714495ce_1600x_e027d2ef-015f-4cc2-9834-ff37a1f70f60.png?v=1770856938" alt="Frosted Feelings">
+          <img class="card__box-img" src="https://huntleyhouse.com/cdn/shop/files/pamelalove-the-infinite-door-a-tarot-deck-and-guide-book-Objects-0d4567862e48935970df86b8f97118a9_webp_the-infinite-door-a-tarot-deck-and-guide-book_e749478bcc3657be_1400x_2d5e9c95-668e-4274-925b-a6ace4bba31b.png?v=1770856937" alt="Frosted Feelings artwork">
+        </div>
+        <div class="card__info">
+          <h3 class="card__name">Frosted Feelings</h3>
+          <p class="card__meta">1000 Piece Puzzle</p>
+          <div class="card__footer"><div class="card__pricing"><span class="card__price-was">$44.95</span><span class="card__price">$34.95</span></div></div>
+          <button class="card__quick-add" onclick="event.preventDefault();event.stopPropagation();addToCart('Frosted Feelings',1000,'https://huntleyhouse.com/cdn/shop/files/pamelalove-the-infinite-door-a-tarot-deck-and-guide-book-Objects-0e61a31ae76f8a7a5e265dcc280186d2_webp_the-infinite-door-a-tarot-deck-and-guide-book_b8c32604714495ce_1600x_e027d2ef-015f-4cc2-9834-ff37a1f70f60.png?v=1770856938">Add to Cart</button>
+        </div>
+      </a>
+      <a class="card" href="product.html?puzzle=pastel-petals">
+        <div class="card__image-wrap">
+          <img class="card__puzzle-img" src="https://huntleyhouse.com/cdn/shop/files/pamelalove-the-infinite-door-a-tarot-deck-and-guide-book-Objects-0e61a31ae76f8a7a5e265dcc280186d2_webp_the-infinite-door-a-tarot-deck-and-guide-book_b8c32604714495ce_1600x_e027d2ef-015f-4cc2-9834-ff37a1f70f60.png?v=1770856938" alt="Pastel Petals">
+          <img class="card__box-img" src="https://huntleyhouse.com/cdn/shop/files/pamelalove-the-infinite-door-a-tarot-deck-and-guide-book-Objects-0d4567862e48935970df86b8f97118a9_webp_the-infinite-door-a-tarot-deck-and-guide-book_e749478bcc3657be_1400x_2d5e9c95-668e-4274-925b-a6ace4bba31b.png?v=1770856937" alt="Pastel Petals artwork">
+        </div>
+        <div class="card__info">
+          <h3 class="card__name">Pastel Petals</h3>
+          <p class="card__meta">1000 Piece Puzzle</p>
+          <div class="card__footer"><div class="card__pricing"><span class="card__price-was">$44.95</span><span class="card__price">$34.95</span></div></div>
+          <button class="card__quick-add" onclick="event.preventDefault();event.stopPropagation();addToCart('Pastel Petals',1000,'https://huntleyhouse.com/cdn/shop/files/pamelalove-the-infinite-door-a-tarot-deck-and-guide-book-Objects-0e61a31ae76f8a7a5e265dcc280186d2_webp_the-infinite-door-a-tarot-deck-and-guide-book_b8c32604714495ce_1600x_e027d2ef-015f-4cc2-9834-ff37a1f70f60.png?v=1770856938">Add to Cart</button>
+        </div>
+      </a>
+      <a class="card" href="product.html?puzzle=fabled-forest">
+        <div class="card__image-wrap">
+          <img class="card__puzzle-img" src="https://huntleyhouse.com/cdn/shop/files/pamelalove-the-infinite-door-a-tarot-deck-and-guide-book-Objects-0e61a31ae76f8a7a5e265dcc280186d2_webp_the-infinite-door-a-tarot-deck-and-guide-book_b8c32604714495ce_1600x_e027d2ef-015f-4cc2-9834-ff37a1f70f60.png?v=1770856938" alt="Fabled Forest">
+          <img class="card__box-img" src="https://huntleyhouse.com/cdn/shop/files/pamelalove-the-infinite-door-a-tarot-deck-and-guide-book-Objects-0d4567862e48935970df86b8f97118a9_webp_the-infinite-door-a-tarot-deck-and-guide-book_e749478bcc3657be_1400x_2d5e9c95-668e-4274-925b-a6ace4bba31b.png?v=1770856937" alt="Fabled Forest artwork">
+        </div>
+        <div class="card__info">
+          <h3 class="card__name">Fabled Forest</h3>
+          <p class="card__meta">1000 Piece Puzzle</p>
+          <div class="card__footer"><div class="card__pricing"><span class="card__price-was">$44.95</span><span class="card__price">$34.95</span></div></div>
+          <button class="card__quick-add" onclick="event.preventDefault();event.stopPropagation();addToCart('Fabled Forest',1000,'https://huntleyhouse.com/cdn/shop/files/pamelalove-the-infinite-door-a-tarot-deck-and-guide-book-Objects-0e61a31ae76f8a7a5e265dcc280186d2_webp_the-infinite-door-a-tarot-deck-and-guide-book_b8c32604714495ce_1600x_e027d2ef-015f-4cc2-9834-ff37a1f70f60.png?v=1770856938">Add to Cart</button>
+        </div>
+      </a>
+      <a class="card" href="product.html?puzzle=cat-christmas">
+        <div class="card__image-wrap">
+          <img class="card__puzzle-img" src="https://huntleyhouse.com/cdn/shop/files/pamelalove-the-infinite-door-a-tarot-deck-and-guide-book-Objects-0e61a31ae76f8a7a5e265dcc280186d2_webp_the-infinite-door-a-tarot-deck-and-guide-book_b8c32604714495ce_1600x_e027d2ef-015f-4cc2-9834-ff37a1f70f60.png?v=1770856938" alt="Cat Christmas">
+          <img class="card__box-img" src="https://huntleyhouse.com/cdn/shop/files/pamelalove-the-infinite-door-a-tarot-deck-and-guide-book-Objects-0d4567862e48935970df86b8f97118a9_webp_the-infinite-door-a-tarot-deck-and-guide-book_e749478bcc3657be_1400x_2d5e9c95-668e-4274-925b-a6ace4bba31b.png?v=1770856937" alt="Cat Christmas artwork">
+        </div>
+        <div class="card__info">
+          <h3 class="card__name">Cat Christmas</h3>
+          <p class="card__meta">500 Piece Puzzle</p>
+          <div class="card__footer"><div class="card__pricing"><span class="card__price-was">$44.95</span><span class="card__price">$34.95</span></div></div>
+          <button class="card__quick-add" onclick="event.preventDefault();event.stopPropagation();addToCart('Cat Christmas',500,'https://huntleyhouse.com/cdn/shop/files/pamelalove-the-infinite-door-a-tarot-deck-and-guide-book-Objects-0e61a31ae76f8a7a5e265dcc280186d2_webp_the-infinite-door-a-tarot-deck-and-guide-book_b8c32604714495ce_1600x_e027d2ef-015f-4cc2-9834-ff37a1f70f60.png?v=1770856938">Add to Cart</button>
+        </div>
+      </a>
+    </div>
+    <div class="collection__progress"><div class="collection__progress-bar" id="collectionProgressBar"></div></div>
+    </div><!-- /.collection__scroll-wrap -->
+  </section>
+
+  <!-- ─── The Puzzle Ritual ─────────────────────────────────── -->
+  <section class="ritual" id="ritual">
+    <div class="ritual__image">
+      <img src="https://huntleyhouse.com/cdn/shop/files/pamelalove-the-infinite-door-a-tarot-deck-and-guide-book-Objects-0d4567862e48935970df86b8f97118a9_webp_the-infinite-door-a-tarot-deck-and-guide-book_e749478bcc3657be_1400x_2d5e9c95-668e-4274-925b-a6ace4bba31b.png?v=1770856937" alt="Vino Voyage">
+    </div>
+    <div class="ritual__text">
+      <p class="ritual__label">The Ritual</p>
+      <h2 class="ritual__title">The Puzzle Ritual</h2>
+      <div class="ritual__divider">
+        <img src="assets/elements/HH_elements_divider01_chocolate.svg" alt="">
+      </div>
+      <p class="ritual__body">At Huntley House, puzzles aren't a novelty — they're a ritual. Something you return to. A way of being present that doesn't require a screen, a plan, or an excuse.</p>
+      <a href="#collection" class="ritual__cta">Get Puzzling</a>
+    </div>
+  </section>
+
+  <!-- ─── Brand Story ───────────────────────────────────────── -->
+  <div class="brand-story">
+    <p class="brand-story__body">At Huntley House, puzzles are made to be more than something you finish. They're designed to help you slow down, unplug, and connect — proudly crafted in the USA, each design is made for quiet moments alone and easy time together.</p>
+    <div class="brand-story__divider">
+      <img src="assets/elements/HH_elements_divider02_cocoa.svg" alt="">
+    </div>
+  </div>
+
+  <!-- ─── The Edit ──────────────────────────────────────────── -->
+  <section class="edit" id="edit">
+    <div class="edit__header">
+      <h2 class="edit__title">The Edit</h2>
+      <a href="the-edit.html" class="edit__link">View All →</a>
+    </div>
+    <div class="edit__grid">
+      <article class="edit-card">
+        <div class="edit-card__image">
+          <img src="https://huntleyhouse.com/cdn/shop/files/pamelalove-the-infinite-door-a-tarot-deck-and-guide-book-Objects-0d4567862e48935970df86b8f97118a9_webp_the-infinite-door-a-tarot-deck-and-guide-book_e749478bcc3657be_1400x_2d5e9c95-668e-4274-925b-a6ace4bba31b.png?v=1770856937" alt="Magic Hour">
+        </div>
+        <p class="edit-card__label">Feb 11, 2026</p>
+        <h3 class="edit-card__title">Magic Hour: The Social Side of Analog Play</h3>
+        <p class="edit-card__body">Our photography guidelines are "observed, not directed" because that is exactly how we hope you experience our puzzles. Picture a "magic hour" scene: a messy table, a bottle of wine, and people lea...</p>
+      </article>
+      <article class="edit-card">
+        <div class="edit-card__image">
+          <img src="https://huntleyhouse.com/cdn/shop/files/pamelalove-the-infinite-door-a-tarot-deck-and-guide-book-Objects-0d4567862e48935970df86b8f97118a9_webp_the-infinite-door-a-tarot-deck-and-guide-book_e749478bcc3657be_1400x_2d5e9c95-668e-4274-925b-a6ace4bba31b.png?v=1770856937" alt="Route Retro">
+        </div>
+        <p class="edit-card__label">Feb 11, 2026</p>
+        <h3 class="edit-card__title">Made with Intention: A Legacy of Craftsmanship</h3>
+        <p class="edit-card__body">Quality is never an accident. For Huntley House, it began with a family background in U.S. manufacturing and a simple desire to elevate the materials we touch every day. We didn't want to make puzz...</p>
+      </article>
+      <article class="edit-card">
+        <div class="edit-card__image">
+          <img src="https://huntleyhouse.com/cdn/shop/files/pamelalove-the-infinite-door-a-tarot-deck-and-guide-book-Objects-0d4567862e48935970df86b8f97118a9_webp_the-infinite-door-a-tarot-deck-and-guide-book_e749478bcc3657be_1400x_2d5e9c95-668e-4274-925b-a6ace4bba31b.png?v=1770856937" alt="Brain Cardio">
+        </div>
+        <p class="edit-card__label">Feb 11, 2026</p>
+        <h3 class="edit-card__title">The Art of the Slow Down: Why We Call It Brain Cardio</h3>
+        <p class="edit-card__body">In a world obsessed with the "fast finish," Huntley House is an invitation to enjoy the process. We like to think of our puzzles as brain cardio — a way to flex your mental muscles without the rush...</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- ─── FAQ ───────────────────────────────────────────────── -->
+  <section class="faq" id="faq">
+    <p class="faq__label">FAQ</p>
+    <h2 class="faq__title">Connecting the Pieces</h2>
+    <div class="faq__list">
+      <div class="faq__item">
+        <button class="faq__question" onclick="toggleFaq(this)">
+          Are your puzzles made in the USA?
+          <span class="faq__icon">+</span>
+        </button>
+        <div class="faq__answer">Yes. All Huntley House puzzles are proudly crafted in the United States.</div>
+      </div>
+      <div class="faq__item">
+        <button class="faq__question" onclick="toggleFaq(this)">
+          What makes Huntley House puzzles different?
+          <span class="faq__icon">+</span>
+        </button>
+        <div class="faq__answer">Premium materials, elevated artwork, and a more thoughtful experience from start to finish. We obsess over the feel of every piece.</div>
+      </div>
+      <div class="faq__item">
+        <button class="faq__question" onclick="toggleFaq(this)">
+          Are these puzzles good for gifting?
+          <span class="faq__icon">+</span>
+        </button>
+        <div class="faq__answer">Absolutely. Designed to be both a beautiful object and a meaningful experience — they're one of our most popular gifts.</div>
+      </div>
+      <div class="faq__item">
+        <button class="faq__question" onclick="toggleFaq(this)">
+          What age range are these puzzles best for?
+          <span class="faq__icon">+</span>
+        </button>
+        <div class="faq__answer">Anyone who enjoys a thoughtful challenge and premium craftsmanship. Our puzzles range from 500 to 1000 pieces — ideal for teens through adults.</div>
+      </div>
+    </div>
+    <a href="mailto:support@huntleyhouse.com" class="faq__cta">Email Us for Additional Questions</a>
+  </section>
+
+  <!-- ─── Newsletter ────────────────────────────────────────── -->
+  <section class="newsletter">
+    <img class="newsletter__mark" src="assets/logos/HH_logo_H_cocoa.svg" alt="">
+    <h2 class="newsletter__title">Join Us For Some<br>Peace of Mind</h2>
+    <p class="newsletter__sub">Sign up to receive updates on new puzzles and more. We favor analog moments over digital noise.</p>
+    <form class="newsletter__form" onsubmit="return false;">
+      <input class="newsletter__input" type="email" placeholder="E-mail">
+      <button class="newsletter__submit" type="submit">Subscribe</button>
+    </form>
+  </section>
+
+  <!-- ─── Footer ────────────────────────────────────────────── -->
+  <footer class="footer">
+    <div class="footer__divider">
+      <img src="assets/elements/HH_elements_divider01_chocolate.svg" alt="">
+    </div>
+    <div class="footer__top">
+      <div>
+        <p class="footer__col-label">Need Assistance?</p>
+        <div class="footer__contact-info">
+          Email: support@huntleyhouse.com<br>
+          Phone: 310-666-9430
+        </div>
+      </div>
+      <div>
+        <p class="footer__col-label">About</p>
+        <ul class="footer__links">
+          <li><a href="#">About</a></li>
+          <li><a href="the-edit.html">The Edit Blog</a></li>
+          <li><a href="#faq">FAQ</a></li>
+          <li><a href="#">Wholesale</a></li>
+          <li><a href="#">Account</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="footer__col-label">Social</p>
+        <ul class="footer__links">
+          <li><a href="#">Instagram</a></li>
+          <li><a href="#">TikTok</a></li>
+          <li><a href="#">Facebook</a></li>
+          <li><a href="mailto:support@huntleyhouse.com">Email us</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="footer__col-label">Resources</p>
+        <ul class="footer__links">
+          <li><a href="#">Terms of Service</a></li>
+          <li><a href="#">Privacy Policy</a></li>
+          <li><a href="#">Accessibility</a></li>
+          <li><a href="#">Shipping & Returns</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <p class="footer__copy">© 2026, Huntley House. <a href="#" style="opacity:0.4;">Privacy policy</a></p>
+      <div class="footer__social">
+        <a href="#">Instagram</a>
+        <a href="#">TikTok</a>
+        <a href="#">Pinterest</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ─── Cart Drawer ──────────────────────────────────────── -->
+  <div class="cart-overlay" id="cartOverlay" onclick="closeCart()"></div>
+  <div class="cart-drawer" id="cartDrawer">
+    <div class="cart-drawer__head">
+      <p class="cart-drawer__title">Your Cart</p>
+      <button class="cart-drawer__close" onclick="closeCart()" aria-label="Close">×</button>
+    </div>
+    <div class="cart-drawer__body" id="cartBody">
+      <p class="cart-drawer__empty">Your cart is empty.</p>
+    </div>
+    <div class="cart-drawer__foot" id="cartFoot" style="display:none">
+      <div class="cart-drawer__total">
+        <span class="cart-drawer__total-label">Total</span>
+        <span id="cartTotal">$0.00</span>
+      </div>
+      <button class="cart-drawer__checkout" onclick="alert('Checkout coming soon — stay tuned!')">Proceed to Checkout</button>
+      <a href="#collection" class="cart-drawer__continue" onclick="closeCart()">Continue Shopping</a>
+    </div>
+  </div>
+
+  <script>
+    /* ─── Nav hide-on-scroll ────────────────────────────────── */
+    const nav = document.getElementById('mainNav');
+    let lastY = 0;
+    window.addEventListener('scroll', () => {
+      const y = window.scrollY;
+      nav.classList.toggle('hidden', y > lastY && y > 100);
+      lastY = y;
+    }, { passive: true });
+
+    /* ─── Nav drawer ────────────────────────────────────────── */
+    function toggleNav() {
+      document.getElementById('navDrawer').classList.toggle('is-open');
+    }
+    function closeNav() {
+      document.getElementById('navDrawer').classList.remove('is-open');
+    }
+    function toggleFaq(btn) {
+      const item = btn.closest('.faq__item');
+      const isOpen = item.classList.contains('is-open');
+      document.querySelectorAll('.faq__item').forEach(i => i.classList.remove('is-open'));
+      if (!isOpen) item.classList.add('is-open');
+    }
+
+    /* ─── Cart ──────────────────────────────────────────────── */
+    let cartItems = JSON.parse(localStorage.getItem('hhCart') || '[]');
+
+    function saveCart() { localStorage.setItem('hhCart', JSON.stringify(cartItems)); }
+
+    function openCart() {
+      document.getElementById('cartDrawer').classList.add('is-open');
+      document.getElementById('cartOverlay').classList.add('is-open');
+    }
+    function closeCart() {
+      document.getElementById('cartDrawer').classList.remove('is-open');
+      document.getElementById('cartOverlay').classList.remove('is-open');
+    }
+
+    function addToCart(name, pieces, img) {
+      const existing = cartItems.find(i => i.name === name);
+      if (existing) {
+        existing.qty++;
+      } else {
+        cartItems.push({ name, pieces, img, qty: 1, price: 34.95 });
+      }
+      saveCart();
+      renderCart();
+      openCart();
+    }
+
+    function removeFromCart(name) {
+      cartItems = cartItems.filter(i => i.name !== name);
+      saveCart();
+      renderCart();
+    }
+
+    renderCart(); // restore badge from localStorage on page load
+
+    function renderCart() {
+      const body = document.getElementById('cartBody');
+      const foot = document.getElementById('cartFoot');
+      const badge = document.getElementById('cartBadge');
+      const total = cartItems.reduce((s, i) => s + i.price * i.qty, 0);
+      const count = cartItems.reduce((s, i) => s + i.qty, 0);
+
+      badge.textContent = count;
+      badge.classList.toggle('visible', count > 0);
+      foot.style.display = count > 0 ? 'block' : 'none';
+      document.getElementById('cartTotal').textContent = '$' + total.toFixed(2);
+
+      if (cartItems.length === 0) {
+        body.innerHTML = '<p class="cart-drawer__empty">Your cart is empty.</p>';
+        return;
+      }
+      body.innerHTML = cartItems.map(item => `
+        <div class="cart-item">
+          <img class="cart-item__img" src="${item.img}" alt="${item.name}">
+          <div class="cart-item__info">
+            <p class="cart-item__name">${item.name}</p>
+            <p class="cart-item__meta">${item.pieces.toLocaleString()} Piece Puzzle${item.qty > 1 ? ` × ${item.qty}` : ''}</p>
+            <p class="cart-item__price">$${(item.price * item.qty).toFixed(2)}</p>
+          </div>
+          <button class="cart-item__remove" onclick="removeFromCart('${item.name}')" aria-label="Remove">×</button>
+        </div>
+      `).join('');
+    }
+
+    /* ─── Impact strip — dot sync ──────────────────────────── */
+    (function () {
+      const track = document.getElementById('impactTrack');
+      const dots = document.querySelectorAll('.impact__dot');
+      if (!track || !dots.length) return;
+
+      function syncDots() {
+        const itemW = track.scrollWidth / dots.length;
+        const idx = Math.min(Math.round(track.scrollLeft / itemW), dots.length - 1);
+        dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+      }
+
+      track.addEventListener('scroll', syncDots, { passive: true });
+
+      window.impactGoTo = function (idx) {
+        const itemW = track.scrollWidth / dots.length;
+        track.scrollTo({ left: idx * itemW, behavior: 'smooth' });
+      };
+    })();
+
+    /* ─── Collection carousel — progress bar ───────────────── */
+    (function () {
+      const grid = document.getElementById('collectionGrid');
+      const bar = document.getElementById('collectionProgressBar');
+      if (!grid || !bar) return;
+
+      function syncProgress() {
+        const max = grid.scrollWidth - grid.clientWidth;
+        if (max <= 0) { bar.style.width = '100%'; return; }
+        const pct = (grid.scrollLeft / max) * 100;
+        // bar represents position of the viewport within the full scroll range
+        const viewPct = (grid.clientWidth / grid.scrollWidth) * 100;
+        bar.style.width = Math.min(viewPct + pct * (1 - viewPct / 100), 100) + '%';
+      }
+
+      grid.addEventListener('scroll', syncProgress, { passive: true });
+      // init on load
+      syncProgress();
+    })();
+
+    /* ─── Scroll-triggered reveals ─────────────────────────── */
+    (function () {
+      // Staggered groups — each item gets an incremental delay
+      [
+        { sel: '.collection__grid .card', step: 0.08 },
+        { sel: '.edit__grid .edit-card',  step: 0.10 },
+        { sel: '.faq__item',              step: 0.06 },
+      ].forEach(function ({ sel, step }) {
+        document.querySelectorAll(sel).forEach(function (el, i) {
+          el.classList.add('reveal');
+          el.style.transitionDelay = (i * step) + 's';
+        });
+      });
+
+      // Single-element reveals
+      [
+        '.section-header',
+        '.marquee-header',
+        '.ritual__image',
+        '.ritual__text',
+        '.newsletter__mark',
+        '.newsletter__title',
+      ].forEach(function (sel) {
+        document.querySelectorAll(sel).forEach(function (el) {
+          el.classList.add('reveal');
+        });
+      });
+
+      const io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+            io.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.12 });
+
+      document.querySelectorAll('.reveal').forEach(function (el) {
+        io.observe(el);
+      });
+    })();
+
+    /* ─── Marquee (JS RAF — iOS safe) ──────────────────────── */
+    (function () {
+      const track = document.querySelector('.marquee__track');
+      if (!track) return;
+      let x = 0;
+      let lastTime = null;
+      const speed = 60; // px per second
+
+      function tick(ts) {
+        if (lastTime !== null) {
+          const dt = Math.min(ts - lastTime, 50); // cap at 50ms to handle tab switching
+          x -= speed * dt / 1000;
+          const half = track.scrollWidth / 2;
+          if (Math.abs(x) >= half) x = 0;
+          track.style.transform = 'translate3d(' + x + 'px, 0, 0)';
+        }
+        lastTime = ts;
+        requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    })();
+  </script>
+</body>
+</html>
